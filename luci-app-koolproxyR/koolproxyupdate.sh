@@ -1,6 +1,6 @@
 wget 'https://raw.githubusercontent.com/fw869/AD/master/kp.dat' -O files/usr/share/koolproxy/data/rules/kp.dat
 wget 'https://raw.githubusercontent.com/fw869/AD/master/yhosts.txt' -O files/usr/share/koolproxy/data/rules/yhosts.txt
-wget 'https://raw.githubusercontent.com/fw869/AD/master/fanboy.txt' -O files/usr/share/koolproxy/data/rules/fanboy.txt
+wget 'https://cdn.jsdelivr.net/gh/ycg31/KoolProxy/rules/fanboy.txt' -O files/usr/share/koolproxy/data/rules/fanboy.txt
 wget 'https://raw.githubusercontent.com/fw869/AD/master/easylistchina.txt' -O files/usr/share/koolproxy/data/rules/easylistchina.txt
 
 wget 'https://raw.githubusercontent.com/fw869/AD/master/user.txt' -O files/usr/share/koolproxy/data/user.txt
