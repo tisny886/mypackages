@@ -1,5 +1,5 @@
 # Copyright (C) 2016 Openwrt.org
-#
+# https://github.com/sirpdboy/luci-app-netdata
 # This is free software, licensed under the Apache License, Version 2.0 .
 #
 
