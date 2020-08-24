@@ -8,6 +8,7 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=LuCI Access Control Configuration
 LUCI_DEPENDS:=
 LUCI_PKGARCH:=all
+PKG_NAME:=luci-app-control-mia
 PKG_VERSION:=1
 PKG_RELEASE:=12
 
