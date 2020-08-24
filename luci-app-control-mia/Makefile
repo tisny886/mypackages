@@ -5,12 +5,11 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI Access Control Configuration
-LUCI_DEPENDS:=
+LUCI_TITLE:=LuCI support for Time Control
 LUCI_PKGARCH:=all
 PKG_NAME:=luci-app-control-mia
-PKG_VERSION:=1
-PKG_RELEASE:=12
+PKG_VERSION:=1.0
+PKG_RELEASE:=1-20200825
 
 include $(TOPDIR)/feeds/luci/luci.mk
 

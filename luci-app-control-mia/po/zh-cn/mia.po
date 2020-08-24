@@ -1,55 +1,41 @@
 msgid "Control"
 msgstr "管控"
 
-msgid "Internet Access Schedule Control"
+msgid "Internet Time Control"
 msgstr "上网时间控制"
 
-msgid "Access Schedule Control Settins"
-msgstr "设置客户端禁止访问互联网的时间"
+msgid "Status"
+msgstr "状态"
 
-msgid "General switch"
-msgstr "开启/关闭"
+msgid "Enabled"
+msgstr "启用"
 
-msgid "Strict Mode"
-msgstr "严格模式"
+msgid "Client Settings"
+msgstr "客户端设置"
 
-msgid "Strict Mode will degrade CPU performance, but it can achieve better results"
-msgstr "严格模式会损耗部分CPU资源，但可以按照时间规则立即拦截数据包，效果更好"
+msgid "No Internet start time"
+msgstr "禁止上网开始时间"
 
-msgid "Client Rules"
-msgstr "客户端规则"
+msgid "No Internet end time"
+msgstr "取消禁止上网时间"
 
-msgid "Description"
-msgstr "描述"
+msgid "Monday"
+msgstr "周一"
 
-msgid "MAC address (Computer Name)"
-msgstr "MAC 地址 (主机名)"
+msgid "Tuesday"
+msgstr "周二"
 
-msgid "Start time"
-msgstr "开始时间"
+msgid "Wednesday"
+msgstr "周三"
 
-msgid "End time"
-msgstr "结束时间"
+msgid "Thursday"
+msgstr "周四"
 
-msgid "Mon"
-msgstr "一"
+msgid "Friday"
+msgstr "周五"
 
-msgid "Tue"
-msgstr "二"
+msgid "Saturday"
+msgstr "周六"
 
-msgid "Wed"
-msgstr "三"
-
-msgid "Thu"
-msgstr "四"
-
-msgid "Fri"
-msgstr "五"
-
-msgid "Sat"
-msgstr "六"
-
-msgid "Sun"
-msgstr "日"
-
-
+msgid "Sunday"
+msgstr "周日"
