@@ -1,85 +1,119 @@
 #!/bin/sh /etc/rc.common
 #
 # Copyright (C) 2015 OpenWrt-dist
+# Copyright (C) 2016 fw867 <ffkykzs@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
 #
 
 START=99
-CONFIG=MIA
+
+CONFIG=mia
 
 uci_get_by_type() {
 	local index=0
-	[ -n $4 ] && index=$4
-	local ret=$(uci -q get $CONFIG.@$1[$index].$2 2>/dev/null)
+	if [ -n $4 ]; then
+		index=$4
+	fi
+	local ret=$(uci get $CONFIG.@$1[$index].$2 2>/dev/null)
 	echo ${ret:=$3}
 }
 
+is_true() {
+	case $1 in
+		1|on|true|yes|enabled) echo 0;;
+		*) echo 1;;
+	esac
+}
+
+load_config() {
+	ENABLED=$(uci_get_by_type basic enable)
+	return $(is_true $ENABLED)
+}
+
 add_rule(){
-	local count=$(uci show $CONFIG | grep "@macbind" | sed -n '$p' | cut -d '[' -f 2 | cut -d ']' -f 1)
-	[ -n "$count" ] && [ "$count" -ge 0 ] && {
-		u_get() {
-			local ret=$(uci -q get $CONFIG.@macbind[$1].$2)
-			echo ${ret:=$3}
-		}
-		for i in $(seq 0 $count); do
-			local enable=$(u_get $i enable 0)
-			local macaddr=$(u_get $i macaddr)
-			local timeoff=$(u_get $i timeoff)
-			local timeon=$(u_get $i timeon)
-			local z1=$(u_get $i z1)
-			local z2=$(u_get $i z2)
-			local z3=$(u_get $i z3)
-			local z4=$(u_get $i z4)
-			local z5=$(u_get $i z5)
-			local z6=$(u_get $i z6)
-			local z7=$(u_get $i z7)
-			[ "$z1" == "1" ] && local Z1="Mon,"
-			[ "$z2" == "1" ] && local Z2="Tue,"
-			[ "$z3" == "1" ] && local Z3="Wed,"
-			[ "$z4" == "1" ] && local Z4="Thu,"
-			[ "$z5" == "1" ] && local Z5="Fri,"
-			[ "$z6" == "1" ] && local Z6="Sat,"
-			[ "$z7" == "1" ] && local Z7="Sun"
-			if [ -z $enable ] || [ -z $macaddr ] || [ -z $timeoff ] || [ -z $timeon ]; then
-				continue
-			fi
-			if [ "$enable" == "1" ]; then
-				iptables -t filter -I MIA -m mac --mac-source $macaddr -m time --kerneltz --timestart $timeon --timestop $timeoff --weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7 -j DROP
-				iptables -t nat -I PREROUTING 1 -m mac --mac-source $macaddr -m time --kerneltz --timestart $timeon --timestop $timeoff --weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7 -m comment --comment "MIA" -j RETURN
-			fi
-		done
-	}
-	echo "/etc/init.d/MIA restart" > "/etc/MIA.include"
+local kp_enabled=0
+local ss_enabled=0
+[ `iptables -t nat -L SS 2>/dev/null |wc -l` -gt 0 ] && ss_enabled=1
+[ `iptables -t nat -L KOOLPROXY 2>/dev/null |wc -l` -gt 0 ] && kp_enabled=1
+for i in $(seq 0 100)
+do
+	local enable=$(uci_get_by_type macbind enable '' $i)
+	local macaddr=$(uci_get_by_type macbind macaddr '' $i)
+	local timeon=$(uci_get_by_type macbind timeon '' $i)
+	local timeoff=$(uci_get_by_type macbind timeoff '' $i)
+	local z1=$(uci_get_by_type macbind z1 '' $i)
+	local z2=$(uci_get_by_type macbind z2 '' $i)
+	local z3=$(uci_get_by_type macbind z3 '' $i)
+	local z4=$(uci_get_by_type macbind z4 '' $i)
+	local z5=$(uci_get_by_type macbind z5 '' $i)
+	local z6=$(uci_get_by_type macbind z6 '' $i)
+	local z7=$(uci_get_by_type macbind z7 '' $i)
+	[ "$z1" == "1" ] && Z1="Mon,"
+	[ "$z2" == "1" ] && Z2="Tue,"
+	[ "$z3" == "1" ] && Z3="Wed,"
+	[ "$z4" == "1" ] && Z4="Thu,"
+	[ "$z5" == "1" ] && Z5="Fri,"
+	[ "$z6" == "1" ] && Z6="Sat,"
+	[ "$z7" == "1" ] && Z7="Sun"
+	if [ -z $enable ] || [ -z $macaddr ] || [ -z $timeoff ] || [ -z $timeon ]; then
+		break
+	fi
+	if [ "$enable" == "1" ]; then
+		iptables -t filter -I MIA  -m mac --mac-source $macaddr -m time --kerneltz --timestart $timeon --timestop $timeoff --weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7 -j DROP
+		[ "$ss_enabled" -eq 1 ] && iptables -t nat -I SS $((i+1)) -m mac --mac-source $macaddr -m time --kerneltz --timestart $timeon --timestop $timeoff --weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7 -j RETURN
+		[ "$kp_enabled" -eq 1 ] && [ -z `iptables -t nat -L KOOLPROXY | grep -w RETURN | grep -w "$macaddr"` ] && iptables -t nat -I KOOLPROXY $((i+1)) -m mac --mac-source $macaddr -m time --kerneltz --timestart $timeon --timestop $timeoff --weekdays $Z1$Z2$Z3$Z4$Z5$Z6$Z7 -j RETURN
+	fi
+	for n in $(seq 1 7)
+	do
+		unset "Z$n"
+	done
+done
+}
+
+get_kp_disrule(){
+	macaddr=$1
+	local is_kp_disrule=0
+	index=`uci show koolproxy |grep -w "$macaddr" |awk -F'.' '{print $2}'`
+	[ -n "$indexs" ] && [ `uci -q get koolproxy.$index.filter_mode` == "disable" ] && is_kp_disrule=1
 }
 
 del_rule(){
-	nums=$(iptables -t nat -n -L PREROUTING 2>/dev/null | grep -c "MIA")
-	if [ -n "$nums" ]; then
-		until [ "$nums" = 0 ]
+	type=$1
+	blackMacAdd=$(iptables -t nat -L $type | grep -w RETURN | grep -w "MAC" | awk '{print $7}')
+	[ -n "$blackMacAdd" ] && {
+		for macaddrb in $blackMacAdd
 		do
-			rules=$(iptables -t nat -n -L PREROUTING --line-num 2>/dev/null | grep "MIA" | awk '{print $1}')
-			for rule in $rules
-			do
-				iptables -t nat -D PREROUTING $rule 2>/dev/null
-				break
-			done
-			nums=$(expr $nums - 1)
+			[ "$type" == "KOOLPROXY" ] && {
+				get_kp_disrule $macaddrb
+				[ "$is_kp_disrule" -eq 1 ] && continue
+			}
+			iptables -t nat -D $type -m mac --mac-source $macaddrb -j RETURN
 		done
-	fi
+	}
 }
 
 start(){
-	ENABLED=$(uci_get_by_type basic enable 0)
-	[ "$ENABLED" != "1" ] && exit 0
-	iptables -t filter -N MIA
-	iptables -t filter -I FORWARD -j MIA
-	add_rule
+	! load_config && exit 0
+  iptables -L FORWARD|grep -c MIA 2>/dev/null && [ $? -eq 0 ] && exit 0;
+  iptables -t filter -N MIA
+  iptables -t filter -I FORWARD -m comment --comment "Rule For Control" -j MIA
+  iptables -I INPUT -p udp --dport 53 -m comment --comment "Rule For Control" -j MIA
+  iptables -I INPUT -p tcp --dport 53 -m comment --comment "Rule For Control" -j MIA
+  iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53 -m comment --comment "Rule For Control"
+  iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53 -m comment --comment "Rule For Control"
+  add_rule
 }
 stop(){
-	iptables -t filter -D FORWARD -j MIA 2>/dev/null
-	iptables -t filter -F MIA 2>/dev/null
-	iptables -t filter -X MIA 2>/dev/null
-	del_rule
+  iptables -t filter -D FORWARD -m comment --comment "Rule For Control" -j MIA
+  iptables -D INPUT -p udp --dport 53 -m comment --comment "Rule For Control" -j MIA 2>/dev/null
+  iptables -D INPUT -p tcp --dport 53 -m comment --comment "Rule For Control" -j MIA 2>/dev/null
+  iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53 -m comment --comment "Rule For Control" 2>/dev/null
+  iptables -t nat -D PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53 -m comment --comment "Rule For Control" 2>/dev/null
+  iptables -t filter -F MIA
+  iptables -t filter -X MIA
+  [ `iptables -t nat -L SS 2>/dev/null |wc -l` -gt 0 ] && del_rule SS
+  [ `iptables -t nat -L KOOLPROXY 2>/dev/null |wc -l` -gt 0 ] && del_rule KOOLPROXY
 }
+

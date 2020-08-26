@@ -5,11 +5,10 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI support for Time Control
+LUCI_TITLE:=LuCI support for Mia From Koolshare
 LUCI_PKGARCH:=all
-PKG_NAME:=luci-app-control-mia
-PKG_VERSION:=1.0
-PKG_RELEASE:=1-20200825
+PKG_VERSION:=1.1
+PKG_RELEASE:=3-20190805
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
