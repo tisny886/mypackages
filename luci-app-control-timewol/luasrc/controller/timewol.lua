@@ -6,7 +6,7 @@ function index()
 	end
 	
 	entry({"admin","control"}, firstchild(), "Control", 44).dependent = false
-	entry({"admin","control","timewol"},cbi("timewol"),_("定时唤醒"),95).dependent=true
+	entry({"admin","control","timewol"},cbi("timewol"),_("定时唤醒"),1).dependent=true
 	entry({"admin","control","timewol","status"},call("status")).leaf=true
 end
 
