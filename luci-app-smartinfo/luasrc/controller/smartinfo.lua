@@ -22,7 +22,7 @@ function index()
 		return
 	end
 	
-	local page = entry({"admin","system","smartinfo"},cbi("smartinfo"),_("S.M.A.R.T Info"),20)
+	local page = entry({"admin","system","smartinfo"},cbi("smartinfo"),_("S.M.A.R.T Info"),41)
 	page.i18n="smartinfo"
 	page.dependent=true
 	entry({"admin","system","smartinfo","smartdetail"},call("smart_detail")).leaf = true
